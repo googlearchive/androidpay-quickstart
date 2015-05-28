@@ -1,0 +1,77 @@
+<!--
+     Copyright (C) Google
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.google.android.gms.samples.wallet"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-sdk
+        android:minSdkVersion="9"
+        android:targetSdkVersion="19" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
+    <uses-permission android:name="android.permission.USE_CREDENTIALS"/>
+
+    <application
+        android:icon="@drawable/icon"
+        android:label="@string/app_name"
+        android:theme="@style/BikestoreTheme"
+        android:name=".BikestoreApplication"
+        android:allowBackup="true" >
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+        <!-- Enable Wallet API.
+            This tag is required, it serves as a signal from the app that it uses Wallet APIs.
+            If not present or the value of the tag is not set to "true" then Wallet API will return
+            ERROR_CODE_MERCHANT_ACCOUNT_ERROR for all requests to Wallet API.
+        -->
+        <meta-data
+            android:name="com.google.android.gms.wallet.api.enabled"
+            android:value="true" />
+        <activity
+            android:name="ItemListActivity"
+            android:label="@string/store_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="ItemDetailsActivity"
+            android:label="@string/title_details" />
+        <activity
+            android:name="CheckoutActivity"
+            android:label="@string/title_checkout" />
+        <activity
+            android:name="LoginActivity"
+            android:label="@string/title_login" />
+        <activity
+            android:name="ConfirmationActivity"
+            android:label="@string/title_confirmation" />
+        <activity
+            android:name="OrderCompleteActivity"
+            android:label="@string/title_order_complete" />
+        <receiver
+            android:name="com.google.android.gms.wallet.EnableWalletOptimizationReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wallet.ENABLE_WALLET_OPTIMIZATION" />
+            </intent-filter>
+        </receiver>
+    </application>
+
+</manifest>
