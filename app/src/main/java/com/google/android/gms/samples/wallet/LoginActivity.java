@@ -18,6 +18,7 @@ package com.google.android.gms.samples.wallet;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.view.Menu;
 
 public class LoginActivity extends BikestoreFragmentActivity {
 
@@ -35,6 +36,11 @@ public class LoginActivity extends BikestoreFragmentActivity {
                 .add(R.id.login_fragment, fragment)
                 .commit();
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        return false;
     }
 
     @Override
