@@ -24,5 +24,7 @@ android {
 
 dependencies {
     compile 'com.android.support:support-v4:22.2.0'
-    compile 'com.google.android.gms:play-services:7.5.0'
+
+    compile 'com.google.android.gms:play-services-plus:7.8.0'
+    compile 'com.google.android.gms:play-services-wallet:7.8.0'
 }
