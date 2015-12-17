@@ -16,29 +16,32 @@
 
 package com.google.android.gms.samples.wallet;
 
-import com.google.android.gms.wallet.MaskedWallet;
-import com.google.android.gms.wallet.MaskedWalletRequest;
-import com.google.android.gms.wallet.PaymentMethodTokenizationParameters;
-import com.google.android.gms.wallet.PaymentMethodTokenizationType;
-import com.google.android.gms.wallet.WalletConstants;
-import com.google.android.gms.wallet.fragment.BuyButtonAppearance;
-import com.google.android.gms.wallet.fragment.BuyButtonText;
-import com.google.android.gms.wallet.fragment.Dimension;
-import com.google.android.gms.wallet.fragment.SupportWalletFragment;
-import com.google.android.gms.wallet.fragment.WalletFragmentInitParams;
-import com.google.android.gms.wallet.fragment.WalletFragmentMode;
-import com.google.android.gms.wallet.fragment.WalletFragmentOptions;
-import com.google.android.gms.wallet.fragment.WalletFragmentStyle;
-
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.Toast;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.BooleanResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.wallet.MaskedWallet;
+import com.google.android.gms.wallet.MaskedWalletRequest;
+import com.google.android.gms.wallet.Wallet;
+import com.google.android.gms.wallet.WalletConstants;
+import com.google.android.gms.wallet.fragment.SupportWalletFragment;
+import com.google.android.gms.wallet.fragment.WalletFragmentInitParams;
+import com.google.android.gms.wallet.fragment.WalletFragmentMode;
+import com.google.android.gms.wallet.fragment.WalletFragmentOptions;
+import com.google.android.gms.wallet.fragment.WalletFragmentStyle;
 
 /**
  * The checkout page.
@@ -50,8 +53,10 @@ import android.widget.Toast;
  */
 public class CheckoutActivity extends BikestoreFragmentActivity implements
         View.OnClickListener,
-        CompoundButton.OnCheckedChangeListener {
+        CompoundButton.OnCheckedChangeListener,
+        GoogleApiClient.OnConnectionFailedListener {
 
+    private static final String TAG = "CheckoutActivity";
     private static final int REQUEST_CODE_MASKED_WALLET = 1001;
 
     private SupportWalletFragment mWalletFragment;
@@ -59,15 +64,23 @@ public class CheckoutActivity extends BikestoreFragmentActivity implements
     private Button mReturnToShopping;
     private Button mContinueCheckout;
     private CheckBox mStripeCheckbox;
-    private PaymentMethodTokenizationParameters mPaymentMethodParameters;
+    private boolean mUseStripe = false;
+    private GoogleApiClient mGoogleApiClient;
+    private ProgressDialog mProgressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_checkout);
 
+        // [START basic_google_api_client]
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(Wallet.API, new Wallet.WalletOptions.Builder().build())
+                .enableAutoManage(this, this)
+                .build();
+        // [END basic_google_api_client]
+
         mItemId = getIntent().getIntExtra(Constants.EXTRA_ITEM_ID, 0);
-        createAndAddWalletFragment();
         mReturnToShopping = (Button) findViewById(R.id.button_return_to_shopping);
         mReturnToShopping.setOnClickListener(this);
         mContinueCheckout = (Button) findViewById(R.id.button_regular_checkout);
@@ -75,8 +88,48 @@ public class CheckoutActivity extends BikestoreFragmentActivity implements
 
         mStripeCheckbox = (CheckBox) findViewById(R.id.checkbox_stripe);
         mStripeCheckbox.setOnCheckedChangeListener(this);
+
+        // Check if user is ready to use Android Pay
+        // [START is_ready_to_pay]
+        showProgressDialog();
+        Wallet.Payments.isReadyToPay(mGoogleApiClient).setResultCallback(
+                new ResultCallback<BooleanResult>() {
+                    @Override
+                    public void onResult(@NonNull BooleanResult booleanResult) {
+                        hideProgressDialog();
+
+                        if (booleanResult.getStatus().isSuccess()) {
+                            if (booleanResult.getValue()) {
+                                // Show Android Pay buttons and hide regular checkout button
+                                // [START_EXCLUDE]
+                                Log.d(TAG, "isReadyToPay:true");
+                                createAndAddWalletFragment();
+                                findViewById(R.id.button_regular_checkout)
+                                        .setVisibility(View.GONE);
+                                // [END_EXCLUDE]
+                            } else {
+                                // Hide Android Pay buttons, show a message that Android Pay
+                                // cannot be used yet, and display a traditional checkout button
+                                // [START_EXCLUDE]
+                                Log.d(TAG, "isReadyToPay:false:" + booleanResult.getStatus());
+                                findViewById(R.id.layout_android_pay_checkout)
+                                        .setVisibility(View.GONE);
+                                findViewById(R.id.android_pay_message)
+                                        .setVisibility(View.VISIBLE);
+                                findViewById(R.id.button_regular_checkout)
+                                        .setVisibility(View.VISIBLE);
+                                // [END_EXCLUDE]
+                            }
+                        } else {
+                            // Error making isReadyToPay call
+                            Log.e(TAG, "isReadyToPay:" + booleanResult.getStatus());
+                        }
+                    }
+                });
+        // [END is_ready_to_pay]
     }
 
+    // [START on_activity_result]
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         // retrieve the error code, if available
@@ -88,9 +141,11 @@ public class CheckoutActivity extends BikestoreFragmentActivity implements
             case REQUEST_CODE_MASKED_WALLET:
                 switch (resultCode) {
                     case Activity.RESULT_OK:
-                        MaskedWallet maskedWallet =
-                                data.getParcelableExtra(WalletConstants.EXTRA_MASKED_WALLET);
-                        launchConfirmationPage(maskedWallet);
+                        if (data != null) {
+                            MaskedWallet maskedWallet =
+                                    data.getParcelableExtra(WalletConstants.EXTRA_MASKED_WALLET);
+                            launchConfirmationPage(maskedWallet);
+                        }
                         break;
                     case Activity.RESULT_CANCELED:
                         break;
@@ -107,6 +162,7 @@ public class CheckoutActivity extends BikestoreFragmentActivity implements
                 break;
         }
     }
+    // [END on_activity_result]
 
     /**
      * If the confirmation page encounters an error it can't handle, it will send the customer back
@@ -143,40 +199,19 @@ public class CheckoutActivity extends BikestoreFragmentActivity implements
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         if (buttonView.getId() == R.id.checkbox_stripe) {
-            if (isChecked && validateStripeConfiguration()) {
-                mPaymentMethodParameters = PaymentMethodTokenizationParameters.newBuilder()
-                        .setPaymentMethodTokenizationType(PaymentMethodTokenizationType.PAYMENT_GATEWAY)
-                        .addParameter("gateway", "stripe")
-                        .addParameter("stripe:publishableKey", getString(R.string.stripe_publishable_key))
-                        .addParameter("stripe:version", getString(R.string.stripe_version))
-                        .build();
-            } else {
-                mPaymentMethodParameters = null;
-            }
+            mUseStripe = isChecked;
 
             // Re-create the buy-button with the proper processor
             createAndAddWalletFragment();
         }
     }
 
-    private boolean validateStripeConfiguration() {
-        String publishableKey = getString(R.string.stripe_publishable_key);
-        String version = getString(R.string.stripe_version);
-
-        if ("REPLACE_ME".equals(publishableKey) || "REPLACE_ME".equals(version)) {
-            Toast.makeText(this, getString(R.string.stripe_config_error), Toast.LENGTH_LONG).show();
-            mStripeCheckbox.setChecked(false);
-            return false;
-        } else {
-            return true;
-        }
-    }
-
     private void createAndAddWalletFragment() {
+        // [START fragment_style_and_options]
         WalletFragmentStyle walletFragmentStyle = new WalletFragmentStyle()
-                .setBuyButtonText(BuyButtonText.BUY_WITH_GOOGLE)
-                .setBuyButtonAppearance(BuyButtonAppearance.CLASSIC)
-                .setBuyButtonWidth(Dimension.MATCH_PARENT);
+                .setBuyButtonText(WalletFragmentStyle.BuyButtonText.BUY_WITH)
+                .setBuyButtonAppearance(WalletFragmentStyle.BuyButtonAppearance.ANDROID_PAY_DARK)
+                .setBuyButtonWidth(WalletFragmentStyle.Dimension.MATCH_PARENT);
 
         WalletFragmentOptions walletFragmentOptions = WalletFragmentOptions.newBuilder()
                 .setEnvironment(Constants.WALLET_ENVIRONMENT)
@@ -185,17 +220,25 @@ public class CheckoutActivity extends BikestoreFragmentActivity implements
                 .setMode(WalletFragmentMode.BUY_BUTTON)
                 .build();
         mWalletFragment = SupportWalletFragment.newInstance(walletFragmentOptions);
+        // [END fragment_style_and_options]
 
         // Now initialize the Wallet Fragment
         String accountName = ((BikestoreApplication) getApplication()).getAccountName();
         MaskedWalletRequest maskedWalletRequest;
-        if (mPaymentMethodParameters != null) {
-          maskedWalletRequest = WalletUtil.createStripeMaskedWalletRequest(Constants.ITEMS_FOR_SALE[mItemId],
-                  mPaymentMethodParameters);
+        if (mUseStripe) {
+            // Stripe integration
+            maskedWalletRequest = WalletUtil.createStripeMaskedWalletRequest(
+                    Constants.ITEMS_FOR_SALE[mItemId],
+                    getString(R.string.stripe_publishable_key),
+                    getString(R.string.stripe_version));
         } else {
-          maskedWalletRequest = WalletUtil.createMaskedWalletRequest(Constants.ITEMS_FOR_SALE[mItemId]);
+            // Direct integration
+            maskedWalletRequest = WalletUtil.createMaskedWalletRequest(
+                    Constants.ITEMS_FOR_SALE[mItemId],
+                    getString(R.string.public_key));
         }
 
+        // [START params_builder]
         WalletFragmentInitParams.Builder startParamsBuilder = WalletFragmentInitParams.newBuilder()
                 .setMaskedWalletRequest(maskedWalletRequest)
                 .setMaskedWalletRequestCode(REQUEST_CODE_MASKED_WALLET)
@@ -206,6 +249,7 @@ public class CheckoutActivity extends BikestoreFragmentActivity implements
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.dynamic_wallet_button_fragment, mWalletFragment)
                 .commit();
+        // [END params_builder]
     }
 
     private void launchConfirmationPage(MaskedWallet maskedWallet) {
@@ -218,5 +262,27 @@ public class CheckoutActivity extends BikestoreFragmentActivity implements
     @Override
     public Fragment getResultTargetFragment() {
         return null;
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.e(TAG, "onConnectionFailed:" + connectionResult.getErrorMessage());
+        Toast.makeText(this, "Google Play Services error", Toast.LENGTH_SHORT).show();
+    }
+
+    private void showProgressDialog() {
+        if (mProgressDialog == null) {
+            mProgressDialog = new ProgressDialog(this);
+            mProgressDialog.setIndeterminate(true);
+            mProgressDialog.setMessage("Loading...");
+        }
+
+        mProgressDialog.show();
+    }
+
+    private void hideProgressDialog() {
+        if (mProgressDialog != null && mProgressDialog.isShowing()) {
+            mProgressDialog.hide();
+        }
     }
 }

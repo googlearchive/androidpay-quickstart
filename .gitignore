@@ -7,3 +7,5 @@ build/
 *.iml
 *.jks
 *.apk
+
+*.pem

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="public_key">BO39Rh43UGXMQy5PAWWe7UGWd2a9YRjNLPEEVe+zWIbdIgALcDcnYCuHbmrrzl7h8FZjl6RCzoi5/cDrqXNRVSo=</string>
+
     <string name="stripe_publishable_key">REPLACE_ME</string>
     <string name="stripe_version">REPLACE_ME</string>
 </resources>
