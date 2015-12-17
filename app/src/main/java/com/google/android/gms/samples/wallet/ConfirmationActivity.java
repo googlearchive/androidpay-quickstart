@@ -16,6 +16,12 @@
 
 package com.google.android.gms.samples.wallet;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.view.Menu;
+
 import com.google.android.gms.wallet.MaskedWallet;
 import com.google.android.gms.wallet.WalletConstants;
 import com.google.android.gms.wallet.fragment.SupportWalletFragment;
@@ -23,12 +29,6 @@ import com.google.android.gms.wallet.fragment.WalletFragmentInitParams;
 import com.google.android.gms.wallet.fragment.WalletFragmentMode;
 import com.google.android.gms.wallet.fragment.WalletFragmentOptions;
 import com.google.android.gms.wallet.fragment.WalletFragmentStyle;
-
-import android.app.Activity;
-import android.content.Intent;
-import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.view.Menu;
 
 /**
  * Activity that displays the user's Google Wallet checkout confirmation page.
@@ -66,6 +66,7 @@ public class ConfirmationActivity extends BikestoreFragmentActivity {
                 .setMaskedWalletDetailsButtonBackgroundResource(
                         R.drawable.bikestore_btn_default_holo_light);
 
+        // [START wallet_fragment_options]
         WalletFragmentOptions walletFragmentOptions = WalletFragmentOptions.newBuilder()
                 .setEnvironment(Constants.WALLET_ENVIRONMENT)
                 .setFragmentStyle(walletFragmentStyle)
@@ -73,6 +74,7 @@ public class ConfirmationActivity extends BikestoreFragmentActivity {
                 .setMode(WalletFragmentMode.SELECTION_DETAILS)
                 .build();
         mWalletFragment = SupportWalletFragment.newInstance(walletFragmentOptions);
+        // [END wallet_fragment_options]
 
         // Now initialize the Wallet Fragment
         String accountName = ((BikestoreApplication) getApplication()).getAccountName();

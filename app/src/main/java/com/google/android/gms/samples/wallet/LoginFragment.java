@@ -19,38 +19,40 @@ package com.google.android.gms.samples.wallet;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.IntentSender.SendIntentException;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.common.api.OptionalPendingResult;
 import com.google.android.gms.common.api.Scope;
-import com.google.android.gms.plus.Plus;
-import com.google.android.gms.plus.Plus.PlusOptions;
-import com.google.android.gms.plus.model.people.Person;
 
 public class LoginFragment extends Fragment implements
         OnClickListener, ConnectionCallbacks, OnConnectionFailedListener {
 
+    private static final String TAG = "LoginFragment";
+
     public static final int REQUEST_CODE_RESOLVE_ERR = 1005;
+    public static final int REQUEST_CODE_SIGN_IN = 1006;
     private static final String KEY_SIGNIN_BUTTON_CLICKED = "KEY_SIGNIN_BUTTON_CLICKED";
     private static final String WALLET_SCOPE =
             "https://www.googleapis.com/auth/payments.make_payments";
 
     private ProgressDialog mProgressDialog;
-    private boolean mSignInButtonClicked = false;
-    private boolean mIsResolving = false;
     private GoogleApiClient mGoogleApiClient;
-    private ConnectionResult mConnectionResult;
     private int mLoginAction;
 
     public static LoginFragment newInstance(int loginAction) {
@@ -64,35 +66,26 @@ public class LoginFragment extends Fragment implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        if (savedInstanceState != null) {
-            mSignInButtonClicked = savedInstanceState.getBoolean(KEY_SIGNIN_BUTTON_CLICKED);
-        }
         Bundle args = getArguments();
         if (args != null) {
             mLoginAction = args.getInt(LoginActivity.EXTRA_ACTION);
         }
-        PlusOptions options = PlusOptions.builder().build();
-        mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
-                .addApi(Plus.API, options)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addScope(Plus.SCOPE_PLUS_PROFILE)
-                .addScope(new Scope(WALLET_SCOPE))
-                .build();
-    }
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putBoolean(KEY_SIGNIN_BUTTON_CLICKED, mSignInButtonClicked);
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .requestScopes(new Scope(WALLET_SCOPE))
+                .build();
+
+        mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
+                .enableAutoManage(getActivity(), this)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_login, container, false);
-        mProgressDialog = initializeProgressDialog();
 
         SignInButton signInButton = (SignInButton) view.findViewById(R.id.sign_in_button);
         signInButton.setSize(SignInButton.SIZE_WIDE);
@@ -103,40 +96,13 @@ public class LoginFragment extends Fragment implements
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-        mGoogleApiClient.connect();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (mGoogleApiClient.isConnecting() || mGoogleApiClient.isConnected()) {
-            mGoogleApiClient.disconnect();
-        }
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        dismissProgressDialog();
-    }
-
-    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
-            case REQUEST_CODE_RESOLVE_ERR:
-                if (resultCode != Activity.RESULT_OK) {
-                  mSignInButtonClicked = false;
-                }
-
-                mIsResolving = false;
-                showProgressDialog();
-                mGoogleApiClient.connect();
+            case REQUEST_CODE_SIGN_IN:
+                logIn();
                 break;
             default:
                 super.onActivityResult(requestCode, resultCode, data);
-                dismissProgressDialog();
                 break;
         }
     }
@@ -145,104 +111,58 @@ public class LoginFragment extends Fragment implements
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.sign_in_button:
-                showProgressDialog();
-                mSignInButtonClicked = true;
-                mGoogleApiClient.connect();
+                onSignInClicked();
                 break;
             case R.id.button_login_bikestore:
-                Toast.makeText(getActivity(), R.string.login_bikestore_message, Toast.LENGTH_LONG)
-                        .show();
+                Toast.makeText(getActivity(), R.string.login_bikestore_message, Toast.LENGTH_LONG).show();
                 break;
         }
     }
 
     @Override
     public void onConnected(Bundle connectionHint) {
-        dismissProgressDialog();
         if (mLoginAction == LoginActivity.Action.LOGOUT) {
             logOut();
         } else {
-            mSignInButtonClicked = false;
             logIn();
         }
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult result) {
-        // Save the intent so that we can start an activity when the user clicks
-        // the sign-in button.
-        mConnectionResult = result;
-        if (mSignInButtonClicked) {
-            resolveConnection();
-        }
+       Log.e(TAG, "onConnectionFailed:" + result.getErrorMessage());
     }
 
-    private void resolveConnection() {
-        if (mIsResolving) {
-            return;
-        }
-
-        try {
-            if (mConnectionResult != null && mConnectionResult.hasResolution()) {
-                mConnectionResult.startResolutionForResult(getActivity(), REQUEST_CODE_RESOLVE_ERR);
-                mIsResolving = true;
-            } else {
-                dismissProgressDialog();
-            }
-        }  catch (SendIntentException e) {
-            mConnectionResult = null;
-            mIsResolving = false;
-
-            dismissProgressDialog();
-            mGoogleApiClient.connect();
-        }
+    private void onSignInClicked() {
+        Intent intent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+        startActivityForResult(intent, 1006);
     }
 
     private void logIn() {
-        if (mGoogleApiClient.isConnected()) {
-            Person user = Plus.PeopleApi.getCurrentPerson(mGoogleApiClient);
-            String accountName = Plus.AccountApi.getAccountName(mGoogleApiClient);
-            if (user == null) {
-                Toast.makeText(getActivity(), R.string.network_error, Toast.LENGTH_LONG).show();
-            } else {
-                Toast.makeText(getActivity(), getString(R.string.welcome_user,
-                        user.getDisplayName()), Toast.LENGTH_LONG).show();
+        OptionalPendingResult<GoogleSignInResult> opr = Auth.GoogleSignInApi.silentSignIn(mGoogleApiClient);
+        if (opr.isDone()) {
+            GoogleSignInAccount gsa = opr.get().getSignInAccount();
+            Toast.makeText(getActivity(), getString(R.string.welcome_user,
+                    gsa.getDisplayName()), Toast.LENGTH_LONG).show();
 
-                ((BikestoreApplication) getActivity().getApplication()).login(accountName);
-                getActivity().setResult(Activity.RESULT_OK);
-                getActivity().finish();
-            }
+            ((BikestoreApplication) getActivity().getApplication()).login(gsa.getEmail());
+            getActivity().setResult(Activity.RESULT_OK);
+            getActivity().finish();
+        } else {
+            Toast.makeText(getActivity(), R.string.network_error, Toast.LENGTH_LONG).show();
         }
     }
 
     private void logOut() {
         if (mGoogleApiClient.isConnected()) {
-            Plus.AccountApi.clearDefaultAccount(mGoogleApiClient);
+            Auth.GoogleSignInApi.signOut(mGoogleApiClient);
+
             ((BikestoreApplication) getActivity().getApplication()).logout();
-            mGoogleApiClient.disconnect();
-            Toast.makeText(getActivity(), getString(R.string.logged_out), Toast.LENGTH_LONG)
-                    .show();
+            Toast.makeText(getActivity(), getString(R.string.logged_out), Toast.LENGTH_LONG).show();
             getActivity().setResult(Activity.RESULT_OK);
             getActivity().finish();
-        }
-    }
-
-    private ProgressDialog initializeProgressDialog() {
-        ProgressDialog dialog = new ProgressDialog(getActivity());
-        dialog.setIndeterminate(true);
-        dialog.setMessage(getString(R.string.loading));
-        return dialog;
-    }
-
-    private void showProgressDialog() {
-        if (mProgressDialog != null && !mProgressDialog.isShowing()) {
-            mProgressDialog.show();
-        }
-    }
-
-    private void dismissProgressDialog() {
-        if (mProgressDialog != null && mProgressDialog.isShowing()) {
-            mProgressDialog.dismiss();
+        } else {
+            mLoginAction = LoginActivity.Action.LOGOUT;
         }
     }
 

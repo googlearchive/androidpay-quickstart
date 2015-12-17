@@ -44,10 +44,26 @@ public class WalletUtil {
      *
      * @param itemInfo {@link com.google.android.gms.samples.wallet.ItemInfo} containing details
      *                 of an item.
+     * @param publicKey base64-encoded public encryption key. See instructions for more details.
      * @return {@link MaskedWalletRequest} instance
      */
-    public static MaskedWalletRequest createMaskedWalletRequest(ItemInfo itemInfo) {
-        return createMaskedWalletRequest(itemInfo, null);
+    public static MaskedWalletRequest createMaskedWalletRequest(ItemInfo itemInfo,
+                                                                String publicKey) {
+        // Validate the public key
+        if (publicKey == null || publicKey.contains("REPLACE_ME")) {
+            throw new IllegalArgumentException("Invalid public key, see README for instructions.");
+        }
+
+        // Create direct integration parameters
+        // [START direct_integration_parameters]
+        PaymentMethodTokenizationParameters parameters =
+                PaymentMethodTokenizationParameters.newBuilder()
+                    .setPaymentMethodTokenizationType(PaymentMethodTokenizationType.NETWORK_TOKEN)
+                    .addParameter("publicKey", publicKey)
+                    .build();
+        // [END direct_integration_parameters]
+
+        return createMaskedWalletRequest(itemInfo, parameters);
     }
 
     /**
@@ -55,12 +71,27 @@ public class WalletUtil {
      *
      * @param itemInfo {@link com.google.android.gms.samples.wallet.ItemInfo} containing details
      *                 of an item.
-     * @param parameters {@link PaymentMethodTokenizationParameters} object containing details
-     *                   for payment processing with Stripe.
+     * @param publishableKey Stripe publishable key.
+     * @param version Stripe API version.
      * @return {@link MaskedWalletRequest} instance
      */
     public static MaskedWalletRequest createStripeMaskedWalletRequest(ItemInfo itemInfo,
-            PaymentMethodTokenizationParameters parameters) {
+                                                                      String publishableKey,
+                                                                      String version) {
+        // Validate Stripe configuration
+        if ("REPLACE_ME".equals(publishableKey) || "REPLACE_ME".equals(version)) {
+            throw new IllegalArgumentException("Invalid Stripe configuration, see README for instructions.");
+        }
+
+        // [START stripe_integration_parameters]
+        PaymentMethodTokenizationParameters parameters = PaymentMethodTokenizationParameters.newBuilder()
+                .setPaymentMethodTokenizationType(PaymentMethodTokenizationType.PAYMENT_GATEWAY)
+                .addParameter("gateway", "stripe")
+                .addParameter("stripe:publishableKey", publishableKey)
+                .addParameter("stripe:version", version)
+                .build();
+        // [END stripe_integration_parameters]
+
       return createMaskedWalletRequest(itemInfo, parameters);
     }
 
@@ -72,7 +103,8 @@ public class WalletUtil {
         // Calculate the cart total by iterating over the line items.
         String cartTotal = calculateCartTotal(lineItems);
 
-        MaskedWalletRequest.Builder builder = MaskedWalletRequest.newBuilder()
+        // [START masked_wallet_request]
+        MaskedWalletRequest request = MaskedWalletRequest.newBuilder()
                 .setMerchantName(Constants.MERCHANT_NAME)
                 .setPhoneNumberRequired(true)
                 .setShippingAddressRequired(true)
@@ -84,13 +116,12 @@ public class WalletUtil {
                         .setCurrencyCode(Constants.CURRENCY_CODE_USD)
                         .setTotalPrice(cartTotal)
                         .setLineItems(lineItems)
-                        .build());
+                        .build())
+                .setPaymentMethodTokenizationParameters(parameters)
+                .build();
 
-        if (parameters != null) {
-            builder.setPaymentMethodTokenizationParameters(parameters);
-        }
-
-        return builder.build();
+        return request;
+        // [END masked_wallet_request]
     }
 
     /**
@@ -175,7 +206,8 @@ public class WalletUtil {
 
         String cartTotal = calculateCartTotal(lineItems);
 
-        return FullWalletRequest.newBuilder()
+        // [START full_wallet_request]
+        FullWalletRequest request = FullWalletRequest.newBuilder()
                 .setGoogleTransactionId(googleTransactionId)
                 .setCart(Cart.newBuilder()
                         .setCurrencyCode(Constants.CURRENCY_CODE_USD)
@@ -183,6 +215,9 @@ public class WalletUtil {
                         .setLineItems(lineItems)
                         .build())
                 .build();
+        // [END full_wallet_request]
+
+        return request;
     }
 
     /**

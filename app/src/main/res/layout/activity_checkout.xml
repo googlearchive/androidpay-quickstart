@@ -33,25 +33,43 @@
 
         <include layout="@layout/horizontal_divider" />
 
-        <!--
-            This FrameLayout is a placeholder for the Google Wallet button and will be provided
-            by a fragment at runtime.
-        -->
-        <FrameLayout
-            android:id="@+id/dynamic_wallet_button_fragment"
-            android:layout_height="@dimen/buy_button_height"
-            android:layout_width="@dimen/buy_button_width"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="@dimen/margin_xlarge" />
-
-        <CheckBox
-            android:id="@+id/checkbox_stripe"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/layout_android_pay_checkout"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/margin_xlarge"
-            android:text="@string/stripe_checkbox_text"
-            android:checked="false"
-            android:layout_gravity="center_horizontal" />
+            android:orientation="vertical">
+
+            <!--
+                This FrameLayout is a placeholder for the Google Wallet button and will be provided
+                by a fragment at runtime.
+            -->
+            <FrameLayout
+                android:id="@+id/dynamic_wallet_button_fragment"
+                android:layout_width="@dimen/buy_button_width"
+                android:layout_height="@dimen/buy_button_height"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="@dimen/margin_xlarge" />
+
+            <CheckBox
+                android:id="@+id/checkbox_stripe"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="@dimen/margin_xlarge"
+                android:checked="false"
+                android:text="@string/stripe_checkbox_text" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/android_pay_message"
+            android:layout_width="@dimen/buy_button_width"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="10dp"
+            android:gravity="center"
+            android:text="@string/want_to_use_android_pay"
+            android:visibility="gone"/>
 
         <Button
             android:id="@+id/button_regular_checkout"
@@ -59,7 +77,8 @@
             android:layout_height="wrap_content"
             android:text="@string/continue_checkout"
             android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="@dimen/padding_large" />
+            android:layout_marginBottom="@dimen/padding_large"
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/button_return_to_shopping"

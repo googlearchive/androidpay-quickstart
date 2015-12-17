@@ -88,5 +88,6 @@
     <string name="checkout_bikestore_message">Not implemented. Merchant specific payment flow</string>
     <string name="stripe_checkbox_text">Use Stripe as payment processor?</string>
     <string name="stripe_config_error">Stripe not properly configured. See ids.xml.</string>
+    <string name="want_to_use_android_pay">Want to use Android Pay instead?\n Set it up using the Android Pay app, and you’ll be all set to pay.</string>
 
 </resources>
