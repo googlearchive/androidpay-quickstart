@@ -14,8 +14,8 @@ Run the Android SDK Manager (`android sdk`) and ensure that you have the followi
   * Android Support Repository version 15
 
 ## Generating a Public/Private Key Pair
-In order to run this sample with the 'direct integration' model (as opposed to using Stripe as a
-payment processor) you will need to generate a public/private key pair and put the base64-encoded
+In order to run this sample with the 'direct integration' model (as opposed to a processor gateway token) 
+you will need to generate a public/private key pair and put the base64-encoded
 public key into the resources directory.
 
 In order to generate a suitable key, execute the provided `genkey.sh` script.  You should see
