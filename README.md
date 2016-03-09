@@ -22,8 +22,8 @@ Ensure you have a CyberSource test account created.  If not, do so using this li
 https://www.cybersource.com/register
 
 ## Generating a Public Key
-This sample assumes that you intend to use AndroidPay with the goal of processing on the CyberSource payment gateway.
-As such, you will need to generate a public key and use it to obtain a blob from the AndroidPay service.
+This sample assumes that you intend to use Android Pay with the goal of processing on the CyberSource payment gateway.
+As such, you will need to generate a public key and use it to obtain a blob from the Android Pay service.
 This blob is then prepared with additional data elements, where it can be forwarded to CyberSource using the 
 standard API.  For more information on this part, contact CyberSource.
 
@@ -40,3 +40,5 @@ The key should look something like this:
 `MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE7ILxwCqeus7ZfI9nlxF6op9zyliPjHm35J14Mg4TQJFi8HCsTWqtVM5CDfijze8+rdmLvCBj3mNNnwcXZ47V9w==`
 
 Place this key into `app/src/main/res/values/ids.xml`
+
+While this application is intended as an example of how to integrate with the CyberSource system, it is not endorsed by, affiliated with, or supported through CyberSource.  
