@@ -39,6 +39,6 @@ The key should look something like this:
 
 `MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE7ILxwCqeus7ZfI9nlxF6op9zyliPjHm35J14Mg4TQJFi8HCsTWqtVM5CDfijze8+rdmLvCBj3mNNnwcXZ47V9w==`
 
-Place this key into `app/src/main/res/values/ids.xml`
+Place this key into `app/src/main/java/com/google/android/gms/samples/wallet/Constants` as `CYBS_PUB_KEY`.
 
 This application is intended as an example of how to integrate with the CyberSource system. It is not endorsed by, affiliated with, or supported by CyberSource.  
