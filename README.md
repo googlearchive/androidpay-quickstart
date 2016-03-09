@@ -41,4 +41,4 @@ The key should look something like this:
 
 Place this key into `app/src/main/res/values/ids.xml`
 
-While this application is intended as an example of how to integrate with the CyberSource system, it is not endorsed by, affiliated with, or supported through CyberSource.  
+This application is intended as an example of how to integrate with the CyberSource system. It is not endorsed by, affiliated with, or supported by CyberSource.  
