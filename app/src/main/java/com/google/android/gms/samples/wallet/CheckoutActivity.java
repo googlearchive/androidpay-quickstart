@@ -235,7 +235,7 @@ public class CheckoutActivity extends BikestoreFragmentActivity implements
             // Direct integration
             maskedWalletRequest = WalletUtil.createMaskedWalletRequest(
                     Constants.ITEMS_FOR_SALE[mItemId],
-                    getString(R.string.public_key));
+                    Constants.CYBS_PUB_KEY);
         }
 
         // [START params_builder]
@@ -251,6 +251,7 @@ public class CheckoutActivity extends BikestoreFragmentActivity implements
                 .commit();
         // [END params_builder]
     }
+
 
     private void launchConfirmationPage(MaskedWallet maskedWallet) {
         Intent intent = new Intent(this, ConfirmationActivity.class);

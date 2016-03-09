@@ -24,8 +24,19 @@ import com.google.android.gms.wallet.NotifyTransactionStatusRequest;
 import com.google.android.gms.wallet.PaymentMethodTokenizationParameters;
 import com.google.android.gms.wallet.PaymentMethodTokenizationType;
 
+import org.spongycastle.jce.interfaces.ECPublicKey;
+import org.spongycastle.math.ec.ECPoint;
+import org.spongycastle.util.encoders.Base64;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PublicKey;
+import java.security.Security;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,12 +65,38 @@ public class WalletUtil {
             throw new IllegalArgumentException("Invalid public key, see README for instructions.");
         }
 
+        /**
+         * In order to use the public key provided by CyberSource, we need to get an elliptic
+         * curve point and use that to use MaskedWalletRequest.
+         * We use SpongyCastle for the crypto.
+         */
+        Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
+        String pointString = "";
+        try {
+            byte[] pubKeyBytes = Base64.decode(Constants.CYBS_PUB_KEY);
+            KeyFactory ecKeyFactory = KeyFactory.getInstance("EC", "SC");
+            X509EncodedKeySpec encodedKeySpec = new X509EncodedKeySpec(pubKeyBytes);
+            PublicKey pubKey = ecKeyFactory.generatePublic(encodedKeySpec);
+            ECPublicKey ecPublicKey = (ECPublicKey) pubKey;
+            ECPoint ecPoint = ecPublicKey.getQ();
+
+            byte[] pointBytes = ecPoint.getEncoded(false);
+            pointString = org.spongycastle.util.encoders.Base64.toBase64String(pointBytes);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (NoSuchProviderException e) {
+            e.printStackTrace();
+        } catch (InvalidKeySpecException e) {
+            e.printStackTrace();
+        }
+
         // Create direct integration parameters
         // [START direct_integration_parameters]
         PaymentMethodTokenizationParameters parameters =
                 PaymentMethodTokenizationParameters.newBuilder()
                     .setPaymentMethodTokenizationType(PaymentMethodTokenizationType.NETWORK_TOKEN)
-                    .addParameter("publicKey", publicKey)
+                    // Use the elliptic curve point string generated above as publicKey.
+                    .addParameter("publicKey", pointString)
                     .build();
         // [END direct_integration_parameters]
 

@@ -20,8 +20,10 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,6 +40,9 @@ import com.google.android.gms.wallet.MaskedWallet;
 import com.google.android.gms.wallet.PaymentMethodToken;
 import com.google.android.gms.wallet.Wallet;
 import com.google.android.gms.wallet.WalletConstants;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * This is a fragment that handles the creating and sending of a {@link FullWalletRequest} using
@@ -227,9 +232,39 @@ public class FullWalletConfirmationButtonFragment extends Fragment implements
     }
 
     /**
-     * Here the client should connect to their server, process the credit card/instrument
-     * and get back a status indicating whether charging the card was successful or not
+     * Here is where we prepare the blob for CyberSource consumption.
      */
+
+    // Base64 encode the Android Pay blob.
+    private String getBase64Blob(String token) {
+        byte[] encodedTokenBytes = Base64.encode(token.getBytes(), Base64.NO_WRAP);
+        String encodedToken = new String(encodedTokenBytes);
+        return encodedToken;
+    }
+
+    // Create JSON payload using Android Pay blob and hash of publicKey.
+    private String createSecServiceJson(String androidPayBlob){
+        String secBlob = "{\"publicKeyHash\": \"" + getPublicKeyHash() + "\"," +
+                "\"version\": \"1.0\"," +
+                "\"data\":" + "\"" + androidPayBlob + "\"}";
+        return secBlob;
+    }
+
+    // An example publicKey hash generation method.
+    private String getPublicKeyHash() {
+        MessageDigest digest = null;
+        try {
+            digest = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        byte[] publicKeyHash;
+        byte[] pubKeyBytes = Base64.decode(Constants.CYBS_PUB_KEY, Base64.NO_WRAP);
+        publicKeyHash = digest.digest(pubKeyBytes);
+        String publicKeyHashString = new String(Base64.encode(publicKeyHash, Base64.NO_WRAP));
+        return publicKeyHashString;
+    }
+
     private void fetchTransactionStatus(FullWallet fullWallet) {
         if (mProgressDialog.isShowing()) {
             mProgressDialog.dismiss();
@@ -252,6 +287,19 @@ public class FullWalletConfirmationButtonFragment extends Fragment implements
             // See the Android Pay documentation for more information on how to decrypt the token.
 
             // Pretty-print the token to LogCat (newlines replaced with spaces).
+
+            // Combine the prepared elements of the blob and print to the log.
+            String tokenJSON = token.getToken();
+            if (tokenJSON != null) {
+                String blob = getBase64Blob(tokenJSON);
+                String cybsBlob = createSecServiceJson(blob);
+                cybsBlob = getBase64Blob(cybsBlob);
+                Log.d("CYBS Blob:" , cybsBlob);
+            }
+
+            // Some method to send the blob to your server goes here.
+            // There, you will send it to CyberSource via API.
+
             Log.d(TAG, "PaymentMethodToken:" + token.getToken().replace('\n', ' '));
         }
 
