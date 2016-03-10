@@ -42,3 +42,13 @@ The key should look something like this:
 Place this key into `app/src/main/java/com/google/android/gms/samples/wallet/Constants` as `CYBS_PUB_KEY`.
 
 This application is intended as an example of how to integrate with the CyberSource system. It is not endorsed by, affiliated with, or supported by CyberSource.  
+
+## CyberSource Integration Components
+In general, using Android Pay with CyberSource is very similar to the "direct" model that is provided in the Google documentation.  There are only a few differences that must be accounted for when using CyberSource.  These differences are integrated into this code, but also listed below for quick reference:
+
+  1. Public Key: the string provided by CyberSource needs to be used to generate an elliptic curve point.  
+  2. JSON: in order for CyberSource to decrypt the Android Pay payload, a JSON object must be created containing:
+   * a SHA-256 hash of the CyberSource public key
+   * version information (presently a static value of "1.0")
+   * Base64-encoded payload from Android Pay (the JSON string returned by FullWallet)
+  3. The resulting JSON object from step 2 is then Base64-encoded and passed to CyberSource via their API, which is outside the scope of this project.
