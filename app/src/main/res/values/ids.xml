@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="public_key">MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE7ILxwCqeus7ZfI9nlxF6op9zyliPjHm35J14Mg4TQJFi8HCsTWqtVM5CDfijze8+rdmLvCBj3mNNnwcXZ47V9w==</string>
-    <string name="stripe_publishable_key">REPLACE_ME</string>
-    <string name="stripe_version">REPLACE_ME</string>
+    <string name="public_key">test_Key</string>
+    <string name="stripe_publishable_key">stripe_key</string>
+    <string name="stripe_version">stripe_version</string>
 </resources>
