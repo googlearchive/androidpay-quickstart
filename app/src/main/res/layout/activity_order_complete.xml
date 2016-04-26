@@ -42,14 +42,6 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/padding_large"
-            android:text="@string/secured_by"
-            android:gravity="center_vertical"
-            android:drawableRight="@drawable/wallet_logo"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/padding_xlarge"
             android:text="@string/confirmation_text" />
 
