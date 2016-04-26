@@ -75,7 +75,9 @@ public class CheckoutActivity extends BikestoreFragmentActivity implements
 
         // [START basic_google_api_client]
         mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addApi(Wallet.API, new Wallet.WalletOptions.Builder().build())
+                .addApi(Wallet.API, new Wallet.WalletOptions.Builder()
+                        .setEnvironment(Constants.WALLET_ENVIRONMENT)
+                        .build())
                 .enableAutoManage(this, this)
                 .build();
         // [END basic_google_api_client]
