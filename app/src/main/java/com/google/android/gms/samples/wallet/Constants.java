@@ -28,6 +28,8 @@ public class Constants {
 
     public static final String MERCHANT_NAME = "Awesome Bike Store";
 
+    public static final String CYBS_PUB_KEY = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE7ILxwCqeus7ZfI9nlxF6op9zyliPjHm35J14Mg4TQJFi8HCsTWqtVM5CDfijze8+rdmLvCBj3mNNnwcXZ47V9w==";
+
     // Intent extra keys
     public static final String EXTRA_ITEM_ID = "EXTRA_ITEM_ID";
     public static final String EXTRA_MASKED_WALLET = "EXTRA_MASKED_WALLET";
