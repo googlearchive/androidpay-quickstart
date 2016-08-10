@@ -16,54 +16,12 @@
 
 package com.google.android.gms.samples.wallet;
 
-import com.google.android.gms.wallet.Address;
-import com.google.android.gms.wallet.MaskedWallet;
-
 import android.content.Context;
 
 /**
  * Helper util methods.
  */
 public class Util {
-    /**
-     * Formats the payment descriptions in a {@code MaskedWallet} for display.
-     *
-     * @param maskedWallet The wallet that contains the payment descriptions.
-     * @return The payment descriptions in a format suitable for display to the user.
-     */
-    static String formatPaymentDescriptions(MaskedWallet maskedWallet) {
-        StringBuilder sb = new StringBuilder();
-        for (String description : maskedWallet.getPaymentDescriptions()) {
-            sb.append(description);
-            sb.append("\n");
-        }
-        if (sb.length() > 0) {
-            // remove trailing newline
-            sb.deleteCharAt(sb.length() - 1);
-        }
-
-        return sb.toString();
-    }
-
-    /**
-     * Formats the address for display.
-     *
-     * @param context The context to get String resources from.
-     * @param address The {@link Address} to format.
-     * @return The address in a format suitable for display to the user.
-     */
-    static String formatAddress(Context context, Address address) {
-        // different locales may need different address formats, which would be handled in
-        // R.string.address_format
-        String address2 = address.getAddress2().length() == 0 ?
-                address.getAddress2() : address.getAddress2() + "\n";
-        String address3 = address.getAddress3().length() == 0 ?
-                address.getAddress3() : address.getAddress3() + "\n";
-        String addressString = context.getString(R.string.address_format, address.getName(),
-                address.getAddress1(), address2, address3, address.getCity(), address.getState(),
-                address.getPostalCode());
-        return addressString;
-    }
 
     /**
      * Formats a price for display.

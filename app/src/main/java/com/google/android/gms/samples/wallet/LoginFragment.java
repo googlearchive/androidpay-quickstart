@@ -17,9 +17,9 @@
 package com.google.android.gms.samples.wallet;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -46,12 +46,10 @@ public class LoginFragment extends Fragment implements
     private static final String TAG = "LoginFragment";
 
     public static final int REQUEST_CODE_RESOLVE_ERR = 1005;
-    public static final int REQUEST_CODE_SIGN_IN = 1006;
-    private static final String KEY_SIGNIN_BUTTON_CLICKED = "KEY_SIGNIN_BUTTON_CLICKED";
+    private static final int REQUEST_CODE_SIGN_IN = 1006;
     private static final String WALLET_SCOPE =
             "https://www.googleapis.com/auth/payments.make_payments";
 
-    private ProgressDialog mProgressDialog;
     private GoogleApiClient mGoogleApiClient;
     private int mLoginAction;
 
@@ -78,6 +76,7 @@ public class LoginFragment extends Fragment implements
 
         mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
                 .enableAutoManage(getActivity(), this)
+                .addConnectionCallbacks(this)
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
     }
@@ -99,7 +98,8 @@ public class LoginFragment extends Fragment implements
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case REQUEST_CODE_SIGN_IN:
-                logIn();
+                GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+                handleSignInResult(result);
                 break;
             default:
                 super.onActivityResult(requestCode, resultCode, data);
@@ -124,32 +124,45 @@ public class LoginFragment extends Fragment implements
         if (mLoginAction == LoginActivity.Action.LOGOUT) {
             logOut();
         } else {
-            logIn();
+            silentSignIn();
         }
     }
 
     @Override
-    public void onConnectionFailed(ConnectionResult result) {
+    public void onConnectionFailed(@NonNull ConnectionResult result) {
        Log.e(TAG, "onConnectionFailed:" + result.getErrorMessage());
     }
 
     private void onSignInClicked() {
         Intent intent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
-        startActivityForResult(intent, 1006);
+        startActivityForResult(intent, REQUEST_CODE_SIGN_IN);
     }
 
-    private void logIn() {
-        OptionalPendingResult<GoogleSignInResult> opr = Auth.GoogleSignInApi.silentSignIn(mGoogleApiClient);
-        if (opr.isDone()) {
-            GoogleSignInAccount gsa = opr.get().getSignInAccount();
-            Toast.makeText(getActivity(), getString(R.string.welcome_user,
-                    gsa.getDisplayName()), Toast.LENGTH_LONG).show();
-
-            ((BikestoreApplication) getActivity().getApplication()).login(gsa.getEmail());
-            getActivity().setResult(Activity.RESULT_OK);
-            getActivity().finish();
+    private void handleSignInResult(GoogleSignInResult result) {
+        if (result.isSuccess()) {
+            Log.d(TAG, "googleSignIn:SUCCESS");
+            handleSignInSuccess(result.getSignInAccount());
         } else {
+            Log.d(TAG, "googleSignIn:FAILURE:" + result.getStatus());
             Toast.makeText(getActivity(), R.string.network_error, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void handleSignInSuccess(GoogleSignInAccount account) {
+        Toast.makeText(getActivity(), getString(R.string.welcome_user,
+                account.getDisplayName()), Toast.LENGTH_LONG).show();
+
+        ((BikestoreApplication) getActivity().getApplication()).login(account.getEmail());
+        getActivity().setResult(Activity.RESULT_OK);
+        getActivity().finish();
+    }
+
+    private void silentSignIn() {
+        OptionalPendingResult<GoogleSignInResult> opr =
+                Auth.GoogleSignInApi.silentSignIn(mGoogleApiClient);
+
+        if (opr.isDone()) {
+            handleSignInResult(opr.get());
         }
     }
 
