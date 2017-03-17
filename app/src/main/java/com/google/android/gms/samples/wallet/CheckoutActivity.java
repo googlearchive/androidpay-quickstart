@@ -21,6 +21,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.View;
@@ -33,6 +34,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.BooleanResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.wallet.IsReadyToPayRequest;
 import com.google.android.gms.wallet.MaskedWallet;
 import com.google.android.gms.wallet.MaskedWalletRequest;
 import com.google.android.gms.wallet.Wallet;
@@ -54,7 +56,9 @@ import com.google.android.gms.wallet.fragment.WalletFragmentStyle;
 public class CheckoutActivity extends BikestoreFragmentActivity implements
         View.OnClickListener,
         CompoundButton.OnCheckedChangeListener,
-        GoogleApiClient.OnConnectionFailedListener {
+        GoogleApiClient.OnConnectionFailedListener,
+        GoogleApiClient.ConnectionCallbacks {
+
 
     private static final String TAG = "CheckoutActivity";
     private static final int REQUEST_CODE_MASKED_WALLET = 1001;
@@ -69,37 +73,17 @@ public class CheckoutActivity extends BikestoreFragmentActivity implements
     private ProgressDialog mProgressDialog;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_checkout);
-
-        // [START basic_google_api_client]
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addApi(Wallet.API, new Wallet.WalletOptions.Builder()
-                        .setEnvironment(Constants.WALLET_ENVIRONMENT)
-                        .build())
-                .enableAutoManage(this, this)
+    public void onConnected(@Nullable Bundle bundle) {
+        // Configure isReadyToPay to return true for default networks
+        IsReadyToPayRequest isReadyToPayRequest = IsReadyToPayRequest.newBuilder()
                 .build();
-        // [END basic_google_api_client]
-
-        mItemId = getIntent().getIntExtra(Constants.EXTRA_ITEM_ID, 0);
-        mReturnToShopping = (Button) findViewById(R.id.button_return_to_shopping);
-        mReturnToShopping.setOnClickListener(this);
-        mContinueCheckout = (Button) findViewById(R.id.button_regular_checkout);
-        mContinueCheckout.setOnClickListener(this);
-
-        mStripeCheckbox = (CheckBox) findViewById(R.id.checkbox_stripe);
-        mStripeCheckbox.setOnCheckedChangeListener(this);
-
         // Check if user is ready to use Android Pay
         // [START is_ready_to_pay]
-        showProgressDialog();
-        Wallet.Payments.isReadyToPay(mGoogleApiClient).setResultCallback(
+        Wallet.Payments.isReadyToPay(mGoogleApiClient, isReadyToPayRequest).setResultCallback(
                 new ResultCallback<BooleanResult>() {
                     @Override
                     public void onResult(@NonNull BooleanResult booleanResult) {
                         hideProgressDialog();
-
                         if (booleanResult.getStatus().isSuccess()) {
                             if (booleanResult.getValue()) {
                                 // Show Android Pay buttons and hide regular checkout button
@@ -129,6 +113,40 @@ public class CheckoutActivity extends BikestoreFragmentActivity implements
                     }
                 });
         // [END is_ready_to_pay]
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "onCreate");
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_checkout);
+
+        mItemId = getIntent().getIntExtra(Constants.EXTRA_ITEM_ID, 0);
+        mReturnToShopping = (Button) findViewById(R.id.button_return_to_shopping);
+        mReturnToShopping.setOnClickListener(this);
+        mContinueCheckout = (Button) findViewById(R.id.button_regular_checkout);
+        mContinueCheckout.setOnClickListener(this);
+
+        mStripeCheckbox = (CheckBox) findViewById(R.id.checkbox_stripe);
+        mStripeCheckbox.setOnCheckedChangeListener(this);
+
+        showProgressDialog();
+
+        // Creating the Google API Client and registering Connection Callbacks will call onConnected
+        // [START basic_google_api_client]
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(Wallet.API, new Wallet.WalletOptions.Builder()
+                        .setEnvironment(Constants.WALLET_ENVIRONMENT)
+                        .build())
+                .addConnectionCallbacks(this)
+                .enableAutoManage(this, this)
+                .build();
+        // [END basic_google_api_client]
     }
 
     // [START on_activity_result]
