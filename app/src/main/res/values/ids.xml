@@ -4,4 +4,9 @@
 
     <string name="stripe_publishable_key">REPLACE_ME</string>
     <string name="stripe_version">REPLACE_ME</string>
+
+    <item type="id" name="menu_option_one_step_buyflow"/>
+    <item type="id" name="menu_option_two_step_buyflow"/>
+    <item type="id" name="menu_option_product_screen_buyflow"/>
+
 </resources>

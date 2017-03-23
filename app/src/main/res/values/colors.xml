@@ -26,4 +26,16 @@
     <color name="bikestore_button_text">#000000</color>
     <color name="bikestore_white">#FFFFFF</color>
 
+    <color name="white">#FFFFFF</color>
+    <color name="dark_grey">#424242</color>
+    <color name="medium_grey">#9E9E9E</color>
+    <color name="button_grey">#757575</color>
+
+    <color name="bike_store_primary">#8ac849</color>
+    <color name="bike_store_primary_dark">#7bb241</color>
+    <color name="bike_store_accent">#2e94d1</color>
+
+    <color name="bike_store_background_light">#FFFFFF</color>
+    <color name="bike_store_background_dark">#342e37</color>
+
 </resources>

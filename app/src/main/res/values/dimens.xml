@@ -41,4 +41,7 @@
     <dimen name="bikestore_button_max_width">64dp</dimen>
     <dimen name="bikestore_button_text">18sp</dimen>
 
+    <dimen name="md_keylines">16dp</dimen>
+    <dimen name="navheader_height">222dp</dimen>
+
 </resources>
