@@ -89,9 +89,11 @@
     <string name="stripe_config_error">Stripe not properly configured. See ids.xml.</string>
     <string name="want_to_use_android_pay">Want to use Android Pay instead?\n Set it up using the Android Pay app, and you’ll be all set to pay.</string>
     <string name="title_activity_select_buy_flow">Select Buy Flow</string>
+    <string name="title_activity_one_step_checkout">One Step Checkout</string>
+    <string name="title_activity_product_detail_checkout">Product Detail Checkout</string>
     <string name="action_settings">Settings</string>
     <string name="menu_option_one_step_buyflow">One Step</string>
     <string name="menu_option_two_step_buyflow">Two Step</string>
-    <string name="menu_option_product_screen_buyflow">Product Screen</string>
+    <string name="menu_option_product_detail_buyflow">Product Screen</string>
 
 </resources>

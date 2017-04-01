@@ -26,9 +26,9 @@
             android:tint="@color/button_grey"
             android:title="@string/menu_option_two_step_buyflow" />
         <item
-            android:id="@id/menu_option_product_screen_buyflow"
+            android:id="@id/menu_option_product_detail_buyflow"
             android:icon="@drawable/ic_launcher"
             android:tint="@color/button_grey"
-            android:title="@string/menu_option_product_screen_buyflow" />
+            android:title="@string/menu_option_product_detail_buyflow" />
     </group>
 </menu>

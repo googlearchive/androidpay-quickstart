@@ -13,6 +13,15 @@
 
         <include layout="@layout/nav_app_bar"/>
 
+        <TextView
+            android:id="@+id/text_details_item_price"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:gravity="center_horizontal"
+            android:textStyle="bold"
+            android:layout_weight="1" />
+
     </android.support.design.widget.CoordinatorLayout>
 
     <include layout="@layout/nav_header"/>

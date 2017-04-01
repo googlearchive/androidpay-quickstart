@@ -54,6 +54,14 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".OneStepCheckoutActivity"
+            android:label="@string/title_activity_one_step_checkout">
+        </activity>
+        <activity
+            android:name=".ProductDetailCheckoutActivity"
+            android:label="@string/title_activity_product_detail_checkout">
+        </activity>
+        <activity
             android:name=".ItemListActivity"
             android:label="@string/store_name">
         </activity>
