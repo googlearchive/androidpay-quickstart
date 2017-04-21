@@ -95,5 +95,6 @@
     <string name="menu_option_one_step_buyflow">One Step</string>
     <string name="menu_option_two_step_buyflow">Two Step</string>
     <string name="menu_option_product_detail_buyflow">Product Screen</string>
+    <string name="item_image">Item Image</string>
 
 </resources>
