@@ -92,20 +92,29 @@ public class ConfirmationActivity extends BikestoreFragmentActivity {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        int errorCode = 0;
+        if (data != null) {
+            errorCode = data.getIntExtra(WalletConstants.EXTRA_ERROR_CODE, 0);
+        }
         switch (requestCode) {
             case REQUEST_CODE_CHANGE_MASKED_WALLET:
-                if (resultCode == Activity.RESULT_OK &&
-                        data.hasExtra(WalletConstants.EXTRA_MASKED_WALLET)) {
-                    mMaskedWallet = data.getParcelableExtra(WalletConstants.EXTRA_MASKED_WALLET);
-                    ((FullWalletConfirmationButtonFragment) getResultTargetFragment())
-                            .updateMaskedWallet(mMaskedWallet);
+                switch (resultCode) {
+                    case Activity.RESULT_OK:
+                        if (data != null && data.hasExtra(WalletConstants.EXTRA_MASKED_WALLET)) {
+                            mMaskedWallet = data.getParcelableExtra(WalletConstants.EXTRA_MASKED_WALLET);
+                            ((FullWalletConfirmationButtonFragment) getResultTargetFragment())
+                                    .updateMaskedWallet(mMaskedWallet);
+                        }
+                        break;
+                    case WalletConstants.RESULT_ERROR:
+                        handleError(errorCode);
+                        break;
+                    case Activity.RESULT_CANCELED:
+                        break;
+                    default:
+                        handleError(errorCode);
+                        break;
                 }
-                  // you may also want to use the new masked wallet data here, say to recalculate
-                  // shipping or taxes if shipping address changed
-                break;
-            case WalletConstants.RESULT_ERROR:
-                int errorCode = data.getIntExtra(WalletConstants.EXTRA_ERROR_CODE, 0);
-                handleError(errorCode);
                 break;
             default:
                 super.onActivityResult(requestCode, resultCode, data);
