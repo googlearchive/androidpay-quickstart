@@ -149,15 +149,15 @@ public class CheckoutActivity extends BikestoreFragmentActivity implements
                             launchConfirmationPage(maskedWallet);
                         }
                         break;
+                    case WalletConstants.RESULT_ERROR:
+                        handleError(errorCode);
+                        break;
                     case Activity.RESULT_CANCELED:
                         break;
                     default:
                         handleError(errorCode);
                         break;
                 }
-                break;
-            case WalletConstants.RESULT_ERROR:
-                handleError(errorCode);
                 break;
             default:
                 super.onActivityResult(requestCode, resultCode, data);
