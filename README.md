@@ -1,8 +1,11 @@
 # androidpay-quickstart
 
-**IMPORTANT: The Android Pay API has been superseded by the [Google Payment API](https://developers.google.com/payments/).**
+## Project status
+![status: inactive](https://img.shields.io/badge/status-inactive-red.svg)
 
-**This sample is deprecated and is no longer maintained. Please see [paymentsapi-quickstart](https://github.com/android-pay/paymentsapi-quickstart) for an up-to-date sample.**
+This project is no longer actively maintained, and remains here as an archive of this work.
+
+The Android Pay API has been superseded by the [Google Payment API](https://developers.google.com/payments/). Please see [paymentsapi-quickstart](https://github.com/android-pay/paymentsapi-quickstart) for an up-to-date sample.
 
 ## Overview
 This sample demonstrates basic usage of the Android Pay API.  For more information, visit the following link:
