@@ -1,5 +1,9 @@
 # androidpay-quickstart
 
+**IMPORTANT: The Android Pay API has been superseded by the [Google Payment API](https://developers.google.com/payments/).**
+
+**This sample is deprecated and is no longer maintained. Please see [paymentsapi-quickstart](https://github.com/android-pay/paymentsapi-quickstart) for an up-to-date sample.**
+
 ## Overview
 This sample demonstrates basic usage of the Android Pay API.  For more information, visit the following link:
 
